@@ -3,10 +3,9 @@ from groq import Groq
 
 # ページの設定
 st.set_page_config(page_title="Cloud LLM Chat", page_icon="☁️")
-st.title("Llama 3.1 クラウドチャットボット")
+st.title("最新クラウドチャットボット")
 
-# 1. Streamlit Secrets（または環境変数）からAPIキーを読み込む
-# 修正後
+# 1. Streamlit SecretsからAPIキーを読み込む
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # クライアントの初期化
@@ -30,15 +29,11 @@ if user_input := st.chat_input("メッセージを入力してください..."):
 
     # 5. Groq API を使ってストリーミング返答
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        full_response = ""
-        
         try:
-            # Groqで Llama 3.1 (70b または 8b) を呼び出す
-            # 利用可能な最新の正確なモデル名はGroq公式ドキュメントをご確認ください
+            # 💡 【重要】現在利用可能な有効なモデル名に修正します
             stream = client.chat.completions.create(
-                # または、軽量で高速なモデルにしたい場合
-                model="openai/gpt-oss-20b", 
+                model="openai/gpt-oss-120b",  # 高速・軽量な推奨モデル
+                # より高性能なモデルを試したい場合は "openai/gpt-oss-120b" も利用可能です
                 messages=[
                     {"role": m["role"], "content": m["content"]}
                     for m in st.session_state.messages
@@ -46,14 +41,17 @@ if user_input := st.chat_input("メッセージを入力してください..."):
                 stream=True,
             )
             
-            for chunk in stream:
-                # 差分テキストを取得して結合
-                delta = chunk.choices[0].delta.content
-                if delta:
-                    full_response += delta
-                    response_placeholder.markdown(full_response + "▌")
+            # ジェネレータ関数を作成して st.write_stream に渡す
+            def generate_chunks():
+                for chunk in stream:
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        yield delta
+
+            # 安全にストリーミング表示し、戻り値として全文を取得
+            full_response = st.write_stream(generate_chunks())
             
-            response_placeholder.markdown(full_response)
+            # 履歴に追加
             st.session_state.messages.append({"role": "assistant", "content": full_response})
             
         except Exception as e:
