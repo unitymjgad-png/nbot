@@ -1,58 +1,148 @@
 import streamlit as st
 from groq import Groq
+import base64
 
-# ページの設定
-st.set_page_config(page_title="Cloud LLM Chat", page_icon="☁️")
-st.title("最新クラウドチャットボット")
+# ============================================================
+# ページ設定
+# ============================================================
+st.set_page_config(
+    page_title="Cloud LLM Chat",
+    page_icon="☁️",
+    layout="wide"
+)
 
-# 1. Streamlit SecretsからAPIキーを読み込む
+# ============================================================
+# 背景画像設定
+# imageフォルダ内の「にゃんこ.jpg」を使用
+# ============================================================
+def get_base64_image(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+img = get_base64_image("image/にゃんこ.jpg")
+
+st.markdown(
+    f"""
+    <style>
+
+    /* 背景画像 */
+    .stApp {{
+        background:
+            linear-gradient(
+                rgba(0,0,0,0.35),
+                rgba(0,0,0,0.35)
+            ),
+            url("data:image/jpeg;base64,{img}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+    }}
+
+    /* タイトル */
+    h1 {{
+        color: white;
+        text-align: center;
+        text-shadow: 2px 2px 8px black;
+    }}
+
+    /* チャット入力欄 */
+    .stChatInput {{
+        background-color: rgba(255,255,255,0.85);
+        border-radius: 15px;
+    }}
+
+    /* ユーザー・AIの吹き出し */
+    [data-testid="stChatMessage"] {{
+        background-color: rgba(255,255,255,0.75);
+        border-radius: 15px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }}
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ============================================================
+# タイトル
+# ============================================================
+st.title("🐱 最新クラウドチャットボット")
+
+# ============================================================
+# APIキー（Streamlit CloudのSecrets）
+# ============================================================
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
-# クライアントの初期化
+# ============================================================
+# Groqクライアント
+# ============================================================
 client = Groq(api_key=GROQ_API_KEY)
 
-# 2. 会話履歴の初期化
+# ============================================================
+# 会話履歴
+# ============================================================
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# 3. 過去の会話履歴を描画
+# ============================================================
+# 過去の会話を表示
+# ============================================================
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 4. ユーザー入力の受付
+# ============================================================
+# ユーザー入力
+# ============================================================
 if user_input := st.chat_input("メッセージを入力してください..."):
+
+    # ユーザー表示
     with st.chat_message("user"):
         st.markdown(user_input)
-    
-    st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # 5. Groq API を使ってストリーミング返答
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": user_input
+        }
+    )
+
+    # AI応答
     with st.chat_message("assistant"):
+
         try:
-            # 💡 【重要】現在利用可能な有効なモデル名に修正します
+
             stream = client.chat.completions.create(
-                model="openai/gpt-oss-120b",  # 高速・軽量な推奨モデル
-                # より高性能なモデルを試したい場合は "openai/gpt-oss-120b" も利用可能です
+                model="openai/gpt-oss-120b",
                 messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages
+                    {
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    }
+                    for msg in st.session_state.messages
                 ],
                 stream=True,
             )
-            
-            # ジェネレータ関数を作成して st.write_stream に渡す
+
             def generate_chunks():
                 for chunk in stream:
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        yield delta
+                    if (
+                        chunk.choices
+                        and chunk.choices[0].delta
+                        and chunk.choices[0].delta.content
+                    ):
+                        yield chunk.choices[0].delta.content
 
-            # 安全にストリーミング表示し、戻り値として全文を取得
             full_response = st.write_stream(generate_chunks())
-            
-            # 履歴に追加
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
-            
+
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": full_response
+                }
+            )
+
         except Exception as e:
-            st.error(f"エラーが発生しました: {e}")
+            st.error(f"エラーが発生しました。\n\n{e}")
