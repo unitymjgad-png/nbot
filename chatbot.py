@@ -41,7 +41,7 @@ st.markdown(
 
     /* タイトル */
     h1 {{
-        color: white;
+        color: black;
         text-align: center;
         text-shadow: 2px 2px 8px black;
     }}
