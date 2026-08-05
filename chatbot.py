@@ -54,7 +54,7 @@ st.markdown(
         border-bottom: none !important;
     }}
 
-    /* 右上のアイコン（メニューボタンなど）の色を背景に馴染む薄いグレーに変更 */
+    /* 右上のアイコンの色を背景に馴染む薄いグレーに変更 */
     [data-testid="stHeader"] *, .stAppHeader * {{
         color: #aaaaaa !important;
     }}
@@ -81,10 +81,17 @@ st.markdown(
         text-shadow: 2px 2px 8px black;
     }}
 
-    /* チャット入力欄 */
+    /* 【新規追加】チャット入力欄の外枠コンテナ（黒い帯）を完全に透明化 */
+    [data-testid="stChatInputBottomContainer"] {{
+        background-color: transparent !important;
+        background: transparent !important;
+    }}
+
+    /* チャット入力欄自体のデザイン */
     .stChatInput {{
-        background-color: rgba(255,255,255,0.85);
+        background-color: rgba(255,255,255,0.9) !important;
         border-radius: 15px;
+        border: 1px solid rgba(0,0,0,0.2) !important;
     }}
 
     /* ユーザー・AIの吹き出し（背景を黒透過） */
@@ -178,7 +185,6 @@ if user_input := st.chat_input("メッセージを入力してください..."):
     with st.chat_message("assistant", avatar=AVATARS["assistant"]):
 
         try:
-            # ※ご利用の環境に合わせて、適切なGroq提供のモデル名（例: llama3-8b-8192 など）に変更してください。
             stream = client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[
@@ -193,10 +199,8 @@ if user_input := st.chat_input("メッセージを入力してください..."):
 
             def generate_chunks():
                 for chunk in stream:
-                    # choicesが存在し、かつ空でないことを確認
                     if chunk.choices:
-                        delta = chunk.choices[0].delta
-                        # deltaの中にcontent（テキスト）があれば出力する
+                        delta = chunk.choices.delta
                         if hasattr(delta, "content") and delta.content:
                             yield delta.content
 
