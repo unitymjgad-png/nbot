@@ -66,6 +66,15 @@ st.markdown(
 )
 
 # ============================================================
+# アイコン画像の定義
+# ============================================================
+# ユーザーとAIの画像パスをここで指定します
+AVATARS = {
+    "user": "image/user.jpg",       # ユーザーの画像パス
+    "assistant": "image/にゃんこ.jpg" # AI（にゃんこ）の画像パス
+}
+
+# ============================================================
 # タイトル
 # ============================================================
 st.title("にゃんこ　チャット")
@@ -90,7 +99,11 @@ if "messages" not in st.session_state:
 # 過去の会話を表示
 # ============================================================
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    # 定義した辞書からロールに応じた画像を取得
+    role = message["role"]
+    avatar_img = AVATARS.get(role)
+    
+    with st.chat_message(role, avatar=avatar_img):
         st.markdown(message["content"])
 
 # ============================================================
@@ -99,7 +112,7 @@ for message in st.session_state.messages:
 if user_input := st.chat_input("メッセージを入力してください..."):
 
     # ユーザー表示
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=AVATARS["user"]):
         st.markdown(user_input)
 
     st.session_state.messages.append(
@@ -110,7 +123,7 @@ if user_input := st.chat_input("メッセージを入力してください..."):
     )
 
     # AI応答
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=AVATARS["assistant"]):
 
         try:
 
