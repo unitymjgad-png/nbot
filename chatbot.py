@@ -81,7 +81,7 @@ st.markdown(
         text-shadow: 2px 2px 8px black;
     }}
 
-    /* 【新規追加】チャット入力欄の外枠コンテナ（黒い帯）を完全に透明化 */
+    /* チャット入力欄の外枠コンテナ（黒い帯）を完全に透明化 */
     [data-testid="stChatInputBottomContainer"] {{
         background-color: transparent !important;
         background: transparent !important;
@@ -192,15 +192,17 @@ if user_input := st.chat_input("メッセージを入力してください..."):
                         "role": msg["role"],
                         "content": msg["content"]
                     }
-                    for msg in st.session_state.messages
+                    for msg in msg in st.session_state.messages
                 ],
                 stream=True,
             )
 
             def generate_chunks():
                 for chunk in stream:
-                    if chunk.choices:
-                        delta = chunk.choices.delta
+                    # choicesが存在し、配列が空ではないことを確認
+                    if chunk.choices and len(chunk.choices) > 0:
+                        # 配列の最初の要素[0]からdeltaを取得
+                        delta = chunk.choices[0].delta
                         if hasattr(delta, "content") and delta.content:
                             yield delta.content
 
