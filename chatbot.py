@@ -20,7 +20,7 @@ AI_AVATAR_IMAGE  = "image/AIにゃんこ.jpg"    # AI（チャット用）の画
 USER_AVATAR_IMAGE = "image/ユーザー.jpg"      # ユーザー（チャット用）の画像
 
 # ============================================================
-# 背景画像設定
+# 背景画像設定 & CSS
 # ============================================================
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
@@ -46,31 +46,37 @@ st.markdown(
         background-attachment: fixed;
     }}
 
-    /* 上部バーの背景を完全に透明化 */
-    [data-testid="stHeader"] {{
+    /* ヘッダー（上部バー）の完全透明化・非表示 */
+    [data-testid="stHeader"], .stAppHeader {{
         background-color: transparent !important;
         background: transparent !important;
+        box-shadow: none !important;
+        border-bottom: none !important;
     }}
 
-    /* 右上のアイコンの色を背景に馴染む薄いグレーに変更 */
-    [data-testid="stHeader"] * {{
+    /* 右上のアイコン（メニューボタンなど）の色を背景に馴染む薄いグレーに変更 */
+    [data-testid="stHeader"] *, .stAppHeader * {{
         color: #aaaaaa !important;
     }}
 
-    /* 【新規】フッターを完全に非表示にして透明化 */
-    footer {{
+    /* フッターの完全非表示・透明化 */
+    footer, .stAppFooter, [data-testid="stFooter"] {{
         visibility: hidden !important;
         height: 0px !important;
-    }}
-    [data-testid="stFooter"] {{
+        display: none !important;
         background-color: transparent !important;
         background: transparent !important;
-        display: none !important;
+        border-top: none !important;
+    }}
+
+    /* メインコンテンツエリアの上部余白を調整して背景を広く見せる */
+    [data-testid="stAppViewBlockContainer"] {{
+        padding-top: 2rem !important;
     }}
 
     /* タイトル */
     h1 {{
-        color: black;
+        color: white;
         text-align: center;
         text-shadow: 2px 2px 8px black;
     }}
@@ -81,12 +87,31 @@ st.markdown(
         border-radius: 15px;
     }}
 
-    /* ユーザー・AIの吹き出し */
+    /* ユーザー・AIの吹き出し（背景を黒透過） */
     [data-testid="stChatMessage"] {{
-        background-color: rgba(1,1,1,0.75);
+        background-color: rgba(1,1,1,0.75) !important;
         border-radius: 15px;
         padding: 10px;
         margin-bottom: 10px;
+    }}
+
+    /* 吹き出し内のすべての文字（Markdown）を白に変更して視認性を確保 */
+    [data-testid="stChatMessage"] p, 
+    [data-testid="stChatMessage"] li, 
+    [data-testid="stChatMessage"] h1, 
+    [data-testid="stChatMessage"] h2, 
+    [data-testid="stChatMessage"] h3 {{
+        color: #ffffff !important;
+    }}
+
+    /* ストリーミング表示（文字の書き込み中）の文字色も白にする */
+    [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] {{
+        color: #ffffff !important;
+    }}
+
+    /* リンク文字を明るい水色にして見やすくする */
+    [data-testid="stChatMessage"] a {{
+        color: #4af !important;
     }}
 
     </style>
@@ -153,7 +178,7 @@ if user_input := st.chat_input("メッセージを入力してください..."):
     with st.chat_message("assistant", avatar=AVATARS["assistant"]):
 
         try:
-
+            # ※ご利用の環境に合わせて、適切なGroq提供のモデル名（例: llama3-8b-8192 など）に変更してください。
             stream = client.chat.completions.create(
                 model="openai/gpt-oss-120b",
                 messages=[
@@ -168,12 +193,12 @@ if user_input := st.chat_input("メッセージを入力してください..."):
 
             def generate_chunks():
                 for chunk in stream:
-                    if (
-                        chunk.choices
-                        and chunk.choices.delta
-                        and chunk.choices.delta.content
-                    ):
-                        yield chunk.choices.delta.content
+                    # choicesが存在し、かつ空でないことを確認
+                    if chunk.choices:
+                        delta = chunk.choices[0].delta
+                        # deltaの中にcontent（テキスト）があれば出力する
+                        if hasattr(delta, "content") and delta.content:
+                            yield delta.content
 
             full_response = st.write_stream(generate_chunks())
 
@@ -194,7 +219,6 @@ if len(st.session_state.messages) > 0:
     components.html(
         """
         <script>
-            // Streamlitのスクロールコンテナを強制的に一番下まで移動
             function scrollToBottom() {
                 const selectors = [
                     '[data-testid="stAppViewHeightContainer"]',
@@ -207,7 +231,6 @@ if len(st.session_state.messages) > 0:
                     });
                 });
             }
-            // 描画タイミングのズレを防ぐため、少し遅延させて実行
             setTimeout(scrollToBottom, 50);
         </script>
         """,
