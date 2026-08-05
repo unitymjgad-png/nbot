@@ -46,15 +46,26 @@ st.markdown(
         background-attachment: fixed;
     }}
 
-    /* 【修正】上部バーの背景を完全に透明化（styleタグの中に移動） */
+    /* 上部バーの背景を完全に透明化 */
     [data-testid="stHeader"] {{
         background-color: transparent !important;
         background: transparent !important;
     }}
 
-    /* 【修正】右上のアイコンの色を背景に馴染む薄いグレーに変更 */
+    /* 右上のアイコンの色を背景に馴染む薄いグレーに変更 */
     [data-testid="stHeader"] * {{
         color: #aaaaaa !important;
+    }}
+
+    /* 【新規】フッターを完全に非表示にして透明化 */
+    footer {{
+        visibility: hidden !important;
+        height: 0px !important;
+    }}
+    [data-testid="stFooter"] {{
+        background-color: transparent !important;
+        background: transparent !important;
+        display: none !important;
     }}
 
     /* タイトル */
@@ -159,10 +170,10 @@ if user_input := st.chat_input("メッセージを入力してください..."):
                 for chunk in stream:
                     if (
                         chunk.choices
-                        and chunk.choices[0].delta
-                        and chunk.choices[0].delta.content
+                        and chunk.choices.delta
+                        and chunk.choices.delta.content
                     ):
-                        yield chunk.choices[0].delta.content
+                        yield chunk.choices.delta.content
 
             full_response = st.write_stream(generate_chunks())
 
