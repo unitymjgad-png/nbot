@@ -87,7 +87,7 @@ st.markdown(
         background: transparent !important;
     }}
 
-    /* チャット入力欄自体のデザイン */
+    /* チャット入力欄自のデザイン */
     .stChatInput {{
         background-color: rgba(255,255,255,0.9) !important;
         border-radius: 15px;
@@ -192,7 +192,7 @@ if user_input := st.chat_input("メッセージを入力してください..."):
                         "role": msg["role"],
                         "content": msg["content"]
                     }
-                    for msg in msg in st.session_state.messages
+                    for msg in st.session_state.messages
                 ],
                 stream=True,
             )
@@ -201,7 +201,7 @@ if user_input := st.chat_input("メッセージを入力してください..."):
                 for chunk in stream:
                     # choicesが存在し、配列が空ではないことを確認
                     if chunk.choices and len(chunk.choices) > 0:
-                        # 配列の最初の要素[0]からdeltaを取得
+                        # 配列の最初の要素からdeltaを取得
                         delta = chunk.choices[0].delta
                         if hasattr(delta, "content") and delta.content:
                             yield delta.content
