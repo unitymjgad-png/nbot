@@ -1,6 +1,7 @@
 import streamlit as st
 from groq import Groq
 import base64
+import streamlit.components.v1 as components
 
 # ============================================================
 # ページ設定
@@ -14,7 +15,6 @@ st.set_page_config(
 # ============================================================
 # 画像ファイルパスの設定
 # ============================================================
-# 3つの画像をここで完全に分けて定義します
 BACKGROUND_IMAGE = "image/背景にゃんこ.jpg"  # 背景用の画像
 AI_AVATAR_IMAGE  = "image/AIにゃんこ.jpg"    # AI（チャット用）の画像
 USER_AVATAR_IMAGE = "image/ユーザー.jpg"      # ユーザー（チャット用）の画像
@@ -26,7 +26,6 @@ def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
-# 背景画像用のパスを読み込む
 bg_img = get_base64_image(BACKGROUND_IMAGE)
 
 st.markdown(
@@ -165,3 +164,30 @@ if user_input := st.chat_input("メッセージを入力してください..."):
 
         except Exception as e:
             st.error(f"エラーが発生しました。\n\n{e}")
+
+# ============================================================
+# 最下部へ自動スクロールするJavaScript（新規追加）
+# ============================================================
+if len(st.session_state.messages) > 0:
+    components.html(
+        """
+        <script>
+            // Streamlitのスクロールコンテナを強制的に一番下まで移動
+            function scrollToBottom() {
+                const selectors = [
+                    '[data-testid="stAppViewHeightContainer"]',
+                    '[data-testid="stAppViewContainer"]',
+                    '.stApp'
+                ];
+                selectors.forEach(selector => {
+                    window.parent.document.querySelectorAll(selector).forEach(el => {
+                        el.scrollTop = el.scrollHeight;
+                    });
+                });
+            }
+            // 描画タイミングのズレを防ぐため、少し遅延させて実行
+            setTimeout(scrollToBottom, 50);
+        </script>
+        """,
+        height=0,
+    )
