@@ -54,7 +54,7 @@ st.markdown(
 
     /* ユーザー・AIの吹き出し */
     [data-testid="stChatMessage"] {{
-        background-color: rgba(255,255,255,0.75);
+        background-color: rgba(1,1,1,0.75);
         border-radius: 15px;
         padding: 10px;
         margin-bottom: 10px;
@@ -68,7 +68,7 @@ st.markdown(
 # ============================================================
 # タイトル
 # ============================================================
-st.title("🐱 最新クラウドチャットボット")
+st.title("にゃんこ　チャット")
 
 # ============================================================
 # APIキー（Streamlit CloudのSecrets）
