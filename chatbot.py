@@ -12,14 +12,22 @@ st.set_page_config(
 )
 
 # ============================================================
+# 画像ファイルパスの設定
+# ============================================================
+# 3つの画像をここで完全に分けて定義します
+BACKGROUND_IMAGE = "image/背景にゃんこ.jpg"  # 背景用の画像
+AI_AVATAR_IMAGE  = "image/AIにゃんこ.jpg"    # AI（チャット用）の画像
+USER_AVATAR_IMAGE = "image/ユーザー.jpg"      # ユーザー（チャット用）の画像
+
+# ============================================================
 # 背景画像設定
-# imageフォルダ内の「にゃんこ.jpg」を使用
 # ============================================================
 def get_base64_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode()
 
-img = get_base64_image("image/にゃんこ.jpg")
+# 背景画像用のパスを読み込む
+bg_img = get_base64_image(BACKGROUND_IMAGE)
 
 st.markdown(
     f"""
@@ -32,7 +40,7 @@ st.markdown(
                 rgba(0,0,0,0.35),
                 rgba(0,0,0,0.35)
             ),
-            url("data:image/jpeg;base64,{img}");
+            url("data:image/jpeg;base64,{bg_img}");
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -66,12 +74,11 @@ st.markdown(
 )
 
 # ============================================================
-# アイコン画像の定義
+# アイコン画像の辞書定義
 # ============================================================
-# ユーザーとAIの画像パスをここで指定します
 AVATARS = {
-    "user": "image/user.jpg",       # ユーザーの画像パス
-    "assistant": "image/にゃんこ.jpg" # AI（にゃんこ）の画像パス
+    "user": USER_AVATAR_IMAGE,
+    "assistant": AI_AVATAR_IMAGE
 }
 
 # ============================================================
@@ -99,7 +106,6 @@ if "messages" not in st.session_state:
 # 過去の会話を表示
 # ============================================================
 for message in st.session_state.messages:
-    # 定義した辞書からロールに応じた画像を取得
     role = message["role"]
     avatar_img = AVATARS.get(role)
     
