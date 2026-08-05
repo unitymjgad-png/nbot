@@ -12,18 +12,6 @@ st.set_page_config(
     layout="wide"
 )
 
-/* 上部バーの背景を完全に透明化 */
-[data-testid="stHeader"] {
-    background-color: transparent !important;
-    background: transparent !important;
-}
-
-/* アイコンや文字の色を黒（または背景に合う色）に変更して見やすくする */
-[data-testid="stHeader"] * {
-    color: #333333 !important;
-}
-
-
 # ============================================================
 # 画像ファイルパスの設定
 # ============================================================
@@ -56,6 +44,17 @@ st.markdown(
         background-position: center;
         background-repeat: no-repeat;
         background-attachment: fixed;
+    }}
+
+    /* 【修正】上部バーの背景を完全に透明化（styleタグの中に移動） */
+    [data-testid="stHeader"] {{
+        background-color: transparent !important;
+        background: transparent !important;
+    }}
+
+    /* 【修正】右上のアイコンの色を背景に馴染む薄いグレーに変更 */
+    [data-testid="stHeader"] * {{
+        color: #aaaaaa !important;
     }}
 
     /* タイトル */
@@ -178,7 +177,7 @@ if user_input := st.chat_input("メッセージを入力してください..."):
             st.error(f"エラーが発生しました。\n\n{e}")
 
 # ============================================================
-# 最下部へ自動スクロールするJavaScript（新規追加）
+# 最下部へ自動スクロールするJavaScript
 # ============================================================
 if len(st.session_state.messages) > 0:
     components.html(
